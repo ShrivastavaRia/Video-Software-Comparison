@@ -3,7 +3,7 @@ from selenium import webdriver
 
 import pyRAPL
 import time
-
+from get_chromedriver import get_chromedriver_location
 desired_cap = {
   'browser_version': '75.0',
   'os': 'Windows',
@@ -18,7 +18,7 @@ desired_cap = {
 # Create the webdriver object. Here the 
 # chromedriver is present in the driver 
 # folder of the root directory.
-driver = webdriver.Chrome(executable_path='chromedriver.exe', desired_capabilities=desired_cap)
+driver = webdriver.Chrome(executable_path=get_chromedriver_location(), desired_capabilities=desired_cap)
 #pyRAPL.setup()
 #meter = pyRAPL.Measurement('bar')
 # get https://www.geeksforgeeks.org/
