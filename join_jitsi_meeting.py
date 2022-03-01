@@ -1,21 +1,18 @@
 import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import pyRAPL
-pyRAPL.setup()
 import time
 from room_name import ROOM_NAME
 from get_chromedriver import get_chromedriver_location
+from measure_rapl_counters import make_measurements
 
 
 
-
-def join_meeting(duration_of_measurement):
-  report = pyRAPL.outputs.CSVOutput("jitsi-output" + str(datetime.datetime.now()), append=False)
+def measure_join_meeting(measurement_file_prefix):
   opt = Options()
   opt.add_argument("--disable-infobars")
   opt.add_argument("start-maximized")
-  opt.add_argument("--disable-extensions")
+  opt.add_argument('--disable-dev-shm-usage')
   # Pass the argument 1 to allow and 2 to block
   opt.add_experimental_option("prefs", { \
       "profile.default_content_setting_values.media_stream_mic": 1, 
@@ -25,11 +22,12 @@ def join_meeting(duration_of_measurement):
     })
 
   driver = webdriver.Chrome(chrome_options= opt, executable_path=get_chromedriver_location())
-
-  with pyRAPL.Measurement("JitsiPerformance", output=report):
-    driver.get("https://jitsi.tu-dresden.de/{}".format(ROOM_NAME))
-    time.sleep(10)
-    driver.find_element_by_xpath('//div[@class="prejoin-input-area"]//input').send_keys("TestUser")
-    driver.find_element_by_xpath('//div[@data-testid="prejoin.joinMeeting"]').click()
-    time.sleep(duration_of_measurement)
-    driver.quit()
+  driver.get("https://jitsi.tu-dresden.de/{}".format(ROOM_NAME))
+  time.sleep(10)
+  driver.find_element_by_xpath('//div[@class="prejoin-input-area"]//input').send_keys("TestUser")
+  driver.find_element_by_xpath('//div[@data-testid="prejoin.joinMeeting"]').click()
+  time.sleep(10)
+  did_measurement_succeed = make_measurements(file_prefix=measurement_file_prefix)
+  # Make measurements for specified seconds[csv values for powerstat, total energy consumed, average wattage] over n iterations[100 iterations of one minute each]
+  driver.quit()
+  return did_measurement_succeed

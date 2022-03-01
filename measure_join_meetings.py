@@ -1,6 +1,6 @@
 import join_jitsi_meeting
+import pathlib
 
-MEASUREMENT_DURATION = 90
+JITSI_CSV = pathlib.Path(__file__).parent.absolute() / "jitsi_output" / "measurement"
 
-jitsi_output = join_jitsi_meeting.join_meeting(MEASUREMENT_DURATION)
-print(jitsi_output)
+join_jitsi_meeting.measure_join_meeting(str(JITSI_CSV))
