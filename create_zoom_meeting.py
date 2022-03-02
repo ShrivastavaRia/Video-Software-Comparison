@@ -1,74 +1,76 @@
-import jwt
-import requests
-import json
-from time import time
-
-# Enter your API key and your API secret
-API_KEY = "6r10-mtrReaf-miViO273g"
-API_SEC = "7rddurwrF5SniB5JQwbLLq5N1rqCNvDsKF6W"
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import pathlib
+import platform
+import time
+from room_name import ROOM_NAME
 
 
-def generateToken():
-    token = jwt.encode(
-        # Create a payload of the token containing
-        # API Key & expiration time
-        {"iss": API_KEY, "exp": time() + 5000},
-        # Secret used to generate token signature
-        API_SEC,
-        # Specify the hashing alg
-        algorithm="HS256",
-    )
-    return token
+# def get_chromedriver_location():
+#     return str(pathlib.Path(__file__).parent.resolve() / "chromedriver-") + str(
+#         platform.system()
+#     )
 
 
-# create json data for post requests
-meetingdetails = {
-    "topic": "The title of your zoom meeting",
-    "type": 2,
-    "start_time": "2022-01-20T10: 16: 00",
-    "duration": "45",
-    "timezone": "Europe/Madrid",
-    "agenda": "test",
-    "recurrence": {"type": 1, "repeat_interval": 1},
-    "settings": {
-        "host_video": "true",
-        "participant_video": "true",
-        "join_before_host": "False",
-        "mute_upon_entry": "False",
-        "watermark": "true",
-        "audio": "voip",
-        "auto_recording": "cloud",
-    },
-}
+opt = Options()
+# opt.add_argument("--disable-infobars")
+# opt.add_argument("start-maximized")
+# opt.add_argument("--disable-extensions")
+# Pass the argument 1 to allow and 2 to blockprefs = {"profile.default_content_setting_values.notifications" : 2}
+# opt.add_experimental_option(
+#     "prefs",
+#     {
+#         "profile.default_content_setting_values.media_stream_mic": 1,
+#         "profile.default_content_setting_values.media_stream_camera": 1,
+#         "profile.default_content_setting_values.geolocation": 1,
+#         "profile.default_content_setting_values.notifications": 1,
+#     },
+# )
+# chromedriver_location = get_chromedriver_location()
+# print(chromedriver_location)
+# driver = webdriver.Chrome(
+#     chrome_options=opt, executable_path=get_chromedriver_location()
+# )
+# # sign in
+# # launch meeting
+# #Ria040996
+# driver.get("https://www.zoom.us/")
+# time.sleep(10)
+# driver.find_element_by_xpath('//a[@class="link"]').click()
+
+# time.sleep(10)
+# driver.find_element_by_id("email").send_keys("riashrivastavathesis@gmail.com")
+# driver.find_element_by_id("password").send_keys("Ria040996")
+# time.sleep(10)
+# driver.find_element_by_xpath('//button[@class ="btn btn-primary signin user"]').click()
+# time.sleep(10000)
+# driver.find_element_by_id("enter_room_field").send_keys(ROOM_NAME)
+# driver.find_element_by_id("enter_room_button").click()
+# time.sleep(10)
+# driver.find_element_by_xpath('//div[@class="prejoin-input-area"]//input').send_keys(
+#     "Ria"
+# )
+# driver.find_element_by_xpath('//div[@data-testid="prejoin.joinMeeting"]').click()
+# time.sleep(10)
+# driver.find_element_by_xpath('//span[text()="I am the host"]').click()
+# driver.find_element_by_xpath('//input[@name="username"]').send_keys("rish338a")
+# driver.find_element_by_xpath('//input[@name="password"]').send_keys("rI/4srivast")
+# driver.find_element_by_id("modal-dialog-ok-button").click()
+import pyautogui
+import webbrowser
+
+url = "https://zoom.us/join"
+zoomid = "2899582462"
+webbrowser.open(url)
+time.sleep(5)
+pyautogui.typewrite(zoomid)
+time.sleep(2)
+pyautogui.press('enter')
+time.sleep(5)
+pyautogui.press('right')
+time.sleep(5)
+pyautogui.press('enter')
 
 
-# send a request with headers including
-# a token and meeting details
 
 
-def createMeeting():
-    headers = {
-        "authorization": "Bearer " + generateToken(),
-        "content-type": "application/json",
-    }
-    r = requests.post(
-        f"https://api.zoom.us/v2/users/me/meetings",
-        headers=headers,
-        data=json.dumps(meetingdetails),
-    )
-
-    print("\n creating zoom meeting ... \n")
-    # print(r.text)
-    # converting the output into json and extracting the details
-    y = json.loads(r.text)
-    join_URL = y["join_url"]
-    meetingPassword = y["password"]
-
-    print(
-        f"\n here is your zoom meeting link {join_URL} and your       password:"
-        f' "{meetingPassword}"\n'
-    )
-
-
-# run the create meeting function
-createMeeting()
