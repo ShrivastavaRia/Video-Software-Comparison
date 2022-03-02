@@ -7,8 +7,10 @@ from plot_graphs import FigurePlotter
 import pathlib
 import time
 
-JITSI_FOLDER = pathlib.Path(__file__).parent.absolute() / "jitsi_output" / "measurement_"
-BBB_FOLDER  =  pathlib.Path(__file__).parent.absolute() / "bbb_output" / "measurement_"
+JITSI_FOLDER = (
+    pathlib.Path(__file__).parent.absolute() / "jitsi_output" / "measurement_"
+)
+BBB_FOLDER = pathlib.Path(__file__).parent.absolute() / "bbb_output" / "measurement_"
 NUM_ITERATIONS = 10
 
 # for i in range(NUM_ITERATIONS):
@@ -22,4 +24,11 @@ fp = FigurePlotter()
 fp.plot_graphs("Jitsi", JITSI_FOLDER, NUM_ITERATIONS, "lightblue", "royalblue")
 fp.plot_graphs("Big Blue Button", BBB_FOLDER, NUM_ITERATIONS, "lightpink", "deeppink")
 fp.plot_bars()
-fp.save_figure(str(pathlib.Path(__file__).parent.absolute() / "images"/("performance-figure" + str(datetime.datetime.now()))) + ".html")
+fp.save_figure(
+    str(
+        pathlib.Path(__file__).parent.absolute()
+        / "images"
+        / ("performance-figure" + str(datetime.datetime.now()))
+    )
+    + ".html"
+)

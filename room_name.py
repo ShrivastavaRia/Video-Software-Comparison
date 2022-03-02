@@ -1,1 +1,1 @@
-ROOM_NAME="riatestroom123"
+ROOM_NAME = "riatestroom123"
