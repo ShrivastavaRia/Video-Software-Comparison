@@ -27,7 +27,7 @@ def measure_join_meeting(measurement_file_prefix):
   driver.find_element_by_xpath('//div[@class="prejoin-input-area"]//input').send_keys("TestUser")
   driver.find_element_by_xpath('//div[@data-testid="prejoin.joinMeeting"]').click()
   time.sleep(10)
-  did_measurement_succeed = make_measurements(file_prefix=measurement_file_prefix)
+  did_measurement_succeed = make_measurements(filename=measurement_file_prefix)
   # Make measurements for specified seconds[csv values for powerstat, total energy consumed, average wattage] over n iterations[100 iterations of one minute each]
   driver.quit()
   return did_measurement_succeed

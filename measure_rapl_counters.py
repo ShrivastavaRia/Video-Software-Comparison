@@ -4,11 +4,9 @@ import subprocess
 
 
 
-def make_measurements(file_prefix, number_of_samples=60, interval=1):
-    filename =  file_prefix + str(datetime.datetime.now()) + ".csv"
-    print("I am here")
+def make_measurements(filename, number_of_samples=60, interval=1):
     try:
-        process = subprocess.check_output(["powerstat", "-D", str(interval), str(number_of_samples)], timeout=70, text=True)
+        process = subprocess.check_output(["powerstat", "-D", "-n", str(interval), str(number_of_samples)], timeout=70, text=True)
         with open(filename, 'w', newline='') as file:
             writer = csv.writer(file)
             header = process.strip().split("\n")[3].split()
