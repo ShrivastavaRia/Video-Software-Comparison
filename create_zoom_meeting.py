@@ -55,8 +55,3 @@ def createMeeting():
     pyautogui.press('right')
     time.sleep(5)
     pyautogui.press('enter')
-
-
-
-
-createMeeting()
