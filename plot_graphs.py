@@ -22,7 +22,8 @@ class FigurePlotter:
             if metric_figure_path in self.fig:
                 figure = self.fig[metric_figure_path]
             else:
-                figure = go.Figure()
+                self.fig[metric_figure_path] = go.Figure()
+            figure = self.fig[metric_figure_path]
             figure.add_trace(
                 go.Scatter(
                     x=df["Time"],

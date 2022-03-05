@@ -11,7 +11,7 @@ import json
 API_KEY = '6r10-mtrReaf-miViO273g'
 API_SEC = '7rddurwrF5SniB5JQwbLLq5N1rqCNvDsKF6W'
 
-def createMeeting():
+def create_meeting(timeout):
     # get jwt token
     token = jwt.encode(
         {'iss': API_KEY, 'exp': time.time() + 5000},
@@ -24,10 +24,12 @@ def createMeeting():
     
     # create meeting
     # create json data for post requests
+    timeout_in_mins = str(int(timeout/60) + 1)
+    print(timeout_in_mins)
     meetingdetails = {"topic": "The title of your zoom meeting",
                     "type": 2,
                     "start_time": "2022-01-20T10: 16: 00",
-                    "duration": "90",
+                    "duration": timeout_in_mins,
                     "timezone": "Europe/Madrid",
                     "agenda": "test",
 
@@ -49,7 +51,7 @@ def createMeeting():
     y = json.loads(r.text)
     url = y["join_url"]
     url = 'https://us05web.zoom.us/j/84515494890?pwd=U2tTZUMrdVZJblhRQ0VDWTdMK1Q0Zz09'
-    insert_link(url)
+    #insert_link(url)
     webbrowser.open(url)
     time.sleep(5)
     pyautogui.press('right')
