@@ -51,7 +51,7 @@ def create_meeting(timeout):
     y = json.loads(r.text)
     url = y["join_url"]
     url = 'https://us05web.zoom.us/j/84515494890?pwd=U2tTZUMrdVZJblhRQ0VDWTdMK1Q0Zz09'
-    #insert_link(url)
+    insert_link(url)
     webbrowser.open(url)
     time.sleep(5)
     pyautogui.press('right')
