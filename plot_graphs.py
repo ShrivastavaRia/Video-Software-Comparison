@@ -7,22 +7,26 @@ import plotly.graph_objects as go
 
 class FigurePlotter:
     def __init__(self):
-        self.fig = go.Figure()
+        self.fig = {}
         self.average_wattage = {}
         self.average_wattage["software_name"] = []
         self.average_wattage["average_wattage"] = []
 
     def plot_graphs(
-        self, software_name, csv_folder, iteration_count, line_color, thick_line_color
+        self, software_name, csv_folder, iteration_count, line_color, thick_line_color, metric_name, metric_figure_path
     ):
         for i in range(iteration_count):
             df = pd.read_csv(str(csv_folder) + str(i) + ".csv")
             df["Time"] = pd.to_datetime(df["Time"])
             df["Time"] = (df["Time"] - df["Time"][0]).dt.seconds
-            self.fig.add_trace(
+            if metric_figure_path in self.fig:
+                figure = self.fig[metric_figure_path]
+            else:
+                figure = go.Figure()
+            figure.add_trace(
                 go.Scatter(
                     x=df["Time"],
-                    y=df["Watts"],
+                    y=df[metric_name],
                     name=software_name + " Sample {}".format(i),
                     line_color=line_color,
                     line_dash="dot",
@@ -41,10 +45,10 @@ class FigurePlotter:
             df_concat = pd.concat((df_concat, df1))
 
         df_concat = df_concat.groupby(level=0).mean()
-        self.fig.add_trace(
+        figure.add_trace(
             go.Scatter(
                 x=df_concat["Time"],
-                y=df_concat["Watts"],
+                y=df_concat[metric_name],
                 name=software_name + " Average Performance",
                 line=dict(color=thick_line_color, width=6),
             )
@@ -58,12 +62,13 @@ class FigurePlotter:
         self.average_wattage["software_name"].append(software_name)
         self.average_wattage["average_wattage"].append(wattage_sum / iteration_count)
 
-        self.fig.update_layout(
-            title="Wattage  Performance",
+        figure.update_layout(
+            title=metric_name + " Performance",
             xaxis_title="Seconds elapsed",
-            yaxis_title="Wattage",
+            yaxis_title=metric_name,
             font=dict(family="Courier New, monospace", size=18, color="RebeccaPurple"),
         )
+        self.fig[metric_figure_path] = figure
 
     def plot_bars(self):
         print(self.average_wattage)
@@ -78,5 +83,6 @@ class FigurePlotter:
             }
         )
 
-    def save_figure(self, output_file_name):
-        plotly.offline.plot(self.fig, filename=output_file_name)
+    def save_figure(self):
+        for path,figure in self.fig.items():
+            plotly.offline.plot(figure, filename=path)
