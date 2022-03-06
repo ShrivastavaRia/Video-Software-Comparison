@@ -1,89 +1,121 @@
 import datetime
+from typing import DefaultDict
 import pandas as pd
 import pathlib
 import plotly
+import plotly.express as px
 import plotly.graph_objects as go
+import seaborn as sns
+from collections import defaultdict
 
 
-class FigurePlotter:
-    def __init__(self):
-        self.fig = {}
-        self.average_wattage = {}
-        self.average_wattage["software_name"] = []
-        self.average_wattage["average_wattage"] = []
+SOFTWARES = ["zoom", "jitsi", "bbb"]
+OUTPUTS = ["_share_output", "_output"]
+LINE_STYLES = {
+    "zoom": {
+        "_output":{
+            "name": "Zoom",
+            "sample_line_color": "lightgreen",
+            "average_line_color":"darkgreen",
+            "line_style": "solid"
+        },
+        "_share_output": {
+            "name": "Zoom Share Screen",
+            "sample_line_color": "lightgray",
+            "average_line_color":"darkgreen",
+            "line_style": "dot"
+        }
+    },
+    "jitsi": {
+        "_output":{
+            "name": "Jitsi",
+            "sample_line_color": "lightpink",
+            "average_line_color":"deeppink",
+            "line_style": "solid"
+        },
+        "_share_output": {
+            "name": "Jitsi Share Screen",
+            "sample_line_color": "lightyellow",
+            "average_line_color":"deeppink",
+            "line_style": "dot"
+        }
+    },
+    "bbb": {
+        "_output":{
+            "name": "Big Blue Button",
+            "sample_line_color": "lightblue",
+            "average_line_color":"darkblue",
+            "line_style": "solid"
+        },
+        "_share_output": {
+            "name": "Big Blue Button Share Screen",
+            "sample_line_color": "cyan",
+            "average_line_color":"darkblue",
+            "line_style": "dot"
+        }
+    }
+}
 
-    def plot_graphs(
-        self, software_name, csv_folder, iteration_count, line_color, thick_line_color, metric_name, metric_figure_path
-    ):
-        for i in range(iteration_count):
-            df = pd.read_csv(str(csv_folder) + str(i) + ".csv")
-            df["Time"] = pd.to_datetime(df["Time"])
-            df["Time"] = (df["Time"] - df["Time"][0]).dt.seconds
-            if metric_figure_path in self.fig:
-                figure = self.fig[metric_figure_path]
-            else:
-                self.fig[metric_figure_path] = go.Figure()
-            figure = self.fig[metric_figure_path]
-            figure.add_trace(
-                go.Scatter(
-                    x=df["Time"],
-                    y=df[metric_name],
-                    name=software_name + " Sample {}".format(i),
-                    line_color=line_color,
-                    line_dash="dot",
-                    line_width=2,
-                )
-            )
+class PlotFigures:
+    def __init__(self, iterations, file_prefix):
+        self._dataframes = defaultdict(DefaultDict)
+        self._iterations = iterations
+        for software in SOFTWARES:
+            for output in OUTPUTS:
+                for iteration in range(iterations):
+                    self._dataframes[software,output,iteration] = pd.read_csv(software + output + "/" + file_prefix + str(iteration) + ".csv")
+                    self._dataframes[software,output,iteration]["Time"] = pd.to_datetime(self._dataframes[software,output,iteration]["Time"])
+                    self._dataframes[software,output,iteration]["Time"] = (self._dataframes[software,output,iteration]["Time"] - self._dataframes[software,output,iteration]["Time"][0]).dt.seconds
 
-        # Average series
-        df_concat = pd.read_csv(str(csv_folder) + "0" + ".csv")
-        df_concat["Time"] = pd.to_datetime(df_concat["Time"])
-        df_concat["Time"] = (df_concat["Time"] - df_concat["Time"][0]).dt.seconds
-        for i in range(1, iteration_count):
-            df1 = pd.read_csv(str(csv_folder) + str(i) + ".csv")
-            df1["Time"] = pd.to_datetime(df1["Time"])
-            df1["Time"] = (df1["Time"] - df1["Time"][0]).dt.seconds
-            df_concat = pd.concat((df_concat, df1))
 
-        df_concat = df_concat.groupby(level=0).mean()
-        figure.add_trace(
-            go.Scatter(
-                x=df_concat["Time"],
-                y=df_concat[metric_name],
-                name=software_name + " Average Performance",
-                line=dict(color=thick_line_color, width=6),
-            )
-        )
 
-        wattage_sum = 0.0
-        for i in range(0, iteration_count):
-            df_sum = pd.read_csv(str(csv_folder) + str(i) + ".csv")
-            wattage_sum = wattage_sum + df_sum["Watts"].mean()
-
-        self.average_wattage["software_name"].append(software_name)
-        self.average_wattage["average_wattage"].append(wattage_sum / iteration_count)
-
-        figure.update_layout(
-            title=metric_name + " Performance",
-            xaxis_title="Seconds elapsed",
-            yaxis_title=metric_name,
-            font=dict(family="Courier New, monospace", size=18, color="RebeccaPurple"),
-        )
-        self.fig[metric_figure_path] = figure
-
-    def plot_bars(self):
-        print(self.average_wattage)
-        plotly.offline.plot(
-            {
-                "data": [
-                    plotly.graph_objs.Bar(
-                        x=self.average_wattage["software_name"],
-                        y=self.average_wattage["average_wattage"],
+    def plot_metric_and_average_line_chart_for_all_scenarios(self, metric, file_to_save, trace_lines=False, average_performance=True):
+        figure = go.Figure()
+        if trace_lines:
+            for software in SOFTWARES:
+                for output in OUTPUTS:
+                    for iteration in range(self._iterations):
+                        figure.add_trace(
+                            go.Scatter(
+                                x=self._dataframes[software,output, iteration]["Time"],
+                                y=self._dataframes[software,output, iteration][metric],
+                                name=LINE_STYLES[software][output]["name"] + " iteration {}".format(iteration),
+                                line_color=LINE_STYLES[software][output]["sample_line_color"],
+                                line_dash="dot",
+                                line_width=2,
+                            )
+                        )
+        if average_performance:
+            for software in SOFTWARES:
+                for output in OUTPUTS:
+                    df_concat = self._dataframes[software, output, 0]
+                    for iteration in range(1, self._iterations):
+                        df_concat = pd.concat((df_concat , self._dataframes[software, output, iteration]))
+                    df_concat =  df_concat.groupby(level=0).mean()
+                    figure.add_trace(
+                        go.Scatter(
+                            x=df_concat["Time"],
+                            y=df_concat[metric],
+                            name = LINE_STYLES[software][output]["name"] + " Average Performance",
+                            line = dict(color=LINE_STYLES[software][output]["average_line_color"], width = 6, dash = LINE_STYLES[software][output]["line_style"])
                     )
-                ]
-            }
-        )
+                )
+        plotly.offline.plot(figure, filename=file_to_save)
 
-    def save_figure(self):
-        for path,figure in self.fig.items():
-            plotly.offline.plot(figure, filename=path)
+
+    def plot_box_plots(self, metric, file_to_save):
+        x_axis_names = []
+        y_axis_names = []
+        df_scores = []
+        for software in SOFTWARES:
+            for output in OUTPUTS:
+                df_concat = self._dataframes[software, output, 0]
+                for iteration in range(1, self._iterations):
+                    df_concat = pd.concat((df_concat , self._dataframes[software, output, iteration]))
+                df_concat =  df_concat.groupby(level=0).mean()
+                df_scores.append(pd.DataFrame({metric :df_concat[metric].tolist(),'Video Software': LINE_STYLES[software][output]["name"]}))
+        df_concat = df_scores[0]
+        for i in range(1,len(df_scores)):
+            df_concat = pd.concat([df_concat, df_scores[i]])
+        figure = px.box(data_frame = df_concat,y = metric, x = 'Video Software',title = "Boxplot Comparison for {} consumed".format(metric), points="all", color_discrete_sequence = ["red", "green", "blue"],template="seaborn" )
+        plotly.offline.plot(figure, filename=file_to_save)
